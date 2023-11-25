@@ -1,11 +1,258 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-<title>Our Funky HTML Page</title>
-<meta name="description" content="Our first page">
-<meta name="keywords" content="html tutorial template">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="phaser.js"></script>
+    <title>Клеточная Одиссея</title>
+    <style>
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+        }
+    </style>
 </head>
+
 <body>
-Content goes here.
+
+    <script>
+
+
+        const test10str = '[{"name":"car1","isMarked":false,"isGood":true},{"name":"car2","isMarked":false,"isGood":true},{"name":"car3","isMarked":false,"isGood":true},{"name":"car4","isMarked":false,"isGood":true},{"name":"car5","isMarked":false,"isGood":true},{"name":"car6","isMarked":false,"isGood":true},{"name":"car7","isMarked":false,"isGood":true},{"name":"car8","isMarked":true,"isGood":true},{"name":"car9","isMarked":false,"isGood":true},{"name":"car10","isMarked":false,"isGood":false},{"name":"car11","isMarked":false,"isGood":false},{"name":"car12","isMarked":false,"isGood":false},{"name":"car13","isMarked":true,"isGood":false},{"name":"car14","isMarked":false,"isGood":false},{"name":"car15","isMarked":false,"isGood":false},{"name":"car16","isMarked":false,"isGood":false},{"name":"car17","isMarked":false,"isGood":false},{"name":"car18","isMarked":false,"isGood":false},{"name":"car19","isMarked":false,"isGood":false},{"name":"car20","isMarked":false,"isGood":false}]';
+        const test20str = '[{"name":"car1","isMarked":false,"isGood":true},{"name":"car2","isMarked":false,"isGood":true},{"name":"car3","isMarked":false,"isGood":true},{"name":"car4","isMarked":false,"isGood":true},{"name":"car5","isMarked":false,"isGood":true},{"name":"car6","isMarked":false,"isGood":true},{"name":"car7","isMarked":false,"isGood":true},{"name":"car8","isMarked":true,"isGood":true},{"name":"car9","isMarked":false,"isGood":true},{"name":"car10","isMarked":false,"isGood":false},{"name":"car11","isMarked":false,"isGood":false},{"name":"car12","isMarked":false,"isGood":false},{"name":"car13","isMarked":true,"isGood":false},{"name":"car14","isMarked":false,"isGood":false},{"name":"car15","isMarked":false,"isGood":false},{"name":"car16","isMarked":false,"isGood":false},{"name":"car17","isMarked":false,"isGood":false},{"name":"car18","isMarked":true,"isGood":false},{"name":"car19","isMarked":false,"isGood":false},{"name":"car20","isMarked":true,"isGood":false}]';
+        const test30str = '[{"name":"car1","isMarked":false,"isGood":true},{"name":"car2","isMarked":false,"isGood":true},{"name":"car3","isMarked":false,"isGood":true},{"name":"car4","isMarked":false,"isGood":true},{"name":"car5","isMarked":false,"isGood":true},{"name":"car6","isMarked":false,"isGood":true},{"name":"car7","isMarked":false,"isGood":true},{"name":"car8","isMarked":true,"isGood":true},{"name":"car9","isMarked":false,"isGood":true},{"name":"car10","isMarked":false,"isGood":false},{"name":"car11","isMarked":false,"isGood":false},{"name":"car12","isMarked":false,"isGood":false},{"name":"car13","isMarked":true,"isGood":false},{"name":"car14","isMarked":false,"isGood":false},{"name":"car15","isMarked":false,"isGood":false},{"name":"car16","isMarked":false,"isGood":false},{"name":"car17","isMarked":false,"isGood":false},{"name":"car18","isMarked":true,"isGood":false},{"name":"car19","isMarked":false,"isGood":false},{"name":"car20","isMarked":true,"isGood":false}]';
+        const fullStr = '[{"name":"car1","isMarked":true,"isGood":true},{"name":"car2","isMarked":true,"isGood":true},{"name":"car3","isMarked":true,"isGood":true},{"name":"car4","isMarked":true,"isGood":true},{"name":"car5","isMarked":true,"isGood":true},{"name":"car6","isMarked":true,"isGood":true},{"name":"car7","isMarked":true,"isGood":true},{"name":"car8","isMarked":true,"isGood":true},{"name":"car9","isMarked":true,"isGood":true},{"name":"car10","isMarked":true,"isGood":false},{"name":"car11","isMarked":true,"isGood":false},{"name":"car12","isMarked":true,"isGood":false},{"name":"car13","isMarked":true,"isGood":false},{"name":"car14","isMarked":true,"isGood":false},{"name":"car15","isMarked":true,"isGood":false},{"name":"car16","isMarked":true,"isGood":false},{"name":"car17","isMarked":true,"isGood":false},{"name":"car18","isMarked":true,"isGood":false},{"name":"car19","isMarked":true,"isGood":false},{"name":"car20","isMarked":true,"isGood":false}]';
+        const test10 = JSON.parse(test10str);
+        const test20 = JSON.parse(test20str);
+        const test30 = JSON.parse(test30str);
+        const full = JSON.parse(fullStr);
+
+        //const type = urlParams.get('type');
+
+        const gameResult = [];
+        function saveGame(score, cutCount) {
+            gameResult.push({ 'cutCount': cutCount, 'score': score });
+        }
+
+        const params = new URLSearchParams(window.location.href);
+        const type = params.get('type') || 'full';
+        
+        const data = {'1':test10,'2':test20, '3':test30, 'full': full}[type];
+        
+        class Example extends Phaser.Scene {
+
+            cutCount;
+
+            controls;
+            points = [];
+            slashes;
+
+            fireRate = 2000;
+            nextFire = 0;
+
+            objectNames = full.forEach(obj => obj.name);
+
+            objects;
+            onScreen;
+
+            lives;
+            livesLabel;
+
+            score;
+            scoreLabel;
+
+            preload() {
+
+                this.load.setBaseURL('https://afonenkoa.github.io/CellOdysseyPages');
+                data.forEach(obj => this.load.image(obj.name, `car/${obj.name}.png`));
+                this.onScreen = Array(data.length).fill(false);
+            }
+
+            create() {
+
+                this.cutCount = Array(data.length).fill(0);
+                this.score = 0;
+                this.lives = 3;
+
+                this.physics.world.setBounds(0, 0, 800, 600);
+
+                this.livesLabel = this.add.text(0, 0, '♥'.repeat(this.lives), { fontSize: 40 });
+                this.scoreLabel = this.add.text(150, 0, this.score.toString(), { fontSize: 40 });
+                this.stage = "#0d2622";
+
+                this.objects = this.physics.add.group();
+                this.objects.enableBody = true;
+                this.objects.physicsBodyType = Phaser.Physics.ARCADE;
+                data.forEach((dataObj, i) => {
+                    const obj = this.physics.add.sprite(1000, 1000, dataObj.name);
+                    obj.setScale(0.4)
+                    obj.isOnScreen = false;
+                    obj.id = i;
+                    obj.isMarked = dataObj.isMarked;
+                    obj.isGood = dataObj.isGood;
+
+                    this.objects.add(obj);
+                });
+
+                this.slashes = this.add.graphics(0, 0);
+
+                const cursors = this.input.keyboard.createCursorKeys();
+
+                const controlConfig = {
+                    camera: this.cameras.main,
+                    left: cursors.left,
+                    right: cursors.right,
+                    up: cursors.up,
+                    down: cursors.down,
+                    zoomIn: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q),
+                    zoomOut: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E),
+                    acceleration: 0.06,
+                    drag: 0.0005,
+                    maxSpeed: 1.0
+                };
+
+                this.controls = new Phaser.Cameras.Controls.SmoothedKeyControl(controlConfig);
+            }
+
+            update(time, delta) {
+
+                const input = this.input;
+
+                if (this.time.now > this.nextFire) {
+                    this.nextFire = this.time.now + this.fireRate;
+
+                    const objectsCandidates = this.objects.children.getArray().filter(obj => !obj.isOnScreen);
+
+                    const obj = objectsCandidates[Math.floor(Math.random() * objectsCandidates.length)];
+                    if (obj !== undefined) {
+                        obj.isOnScreen = true;
+                        obj.body.reset(Phaser.Math.Between(200, 400), 600);
+                        obj.setVelocity(Phaser.Math.Between(-50, 50), -Phaser.Math.Between(200, 300));
+                        obj.angle = Phaser.Math.Between(10, 50);
+                        obj.body.angularVelocity = Phaser.Math.Between(20, 70);
+                    }
+                }
+
+
+
+
+                //console.log(input.x, input.y);
+                this.points.push({
+                    x: input.x,
+                    y: input.y
+                });
+
+                this.points = this.points.splice(this.points.length - 10, this.points.length);
+
+                if (this.points.length < 1 || this.points[0].x == 0) {
+                    return;
+                }
+
+                this.slashes.clear();
+
+                this.slashes.lineStyle(10, 0xFFFFFF, 0.5);
+                this.slashes.beginPath();
+                this.slashes.moveTo(this.points[0].x, this.points[0].y);
+                for (var i = 1; i < this.points.length; i++) {
+                    this.slashes.lineTo(this.points[i].x, this.points[i].y);
+                }
+                this.slashes.closePath();
+                this.slashes.strokePath();
+
+                this.objects.children.each(obj => {
+                    if (obj.isOnScreen && obj.body.y > 650) {
+                        obj.isOnScreen = false;
+                    }
+                });
+
+                for (var i = 1; i < this.points.length; i++) {
+                    const line = new Phaser.Geom.Line(this.points[i].x, this.points[i].y, this.points[i - 1].x, this.points[i - 1].y);
+
+                    this.objects.children.each((obj) => {
+                        const fruitBox = new Phaser.Geom.Rectangle(obj.body.x, obj.body.y, obj.body.width, obj.body.height);
+                        const isFruitCut = Phaser.Geom.Intersects.LineToRectangle(line, fruitBox);
+                        if (isFruitCut) {
+                            obj.body.reset(200, 1000);
+                            obj.setVelocity(0, 0);
+                            obj.isOnScreen = false;
+
+                            this.cutCount[obj.id]++;
+
+                            if (obj.isMarked && obj.isGood) {
+                                this.score++;
+                                this.scoreLabel.setText('' + this.score);
+                            }
+
+                            if (obj.isMarked && !obj.isGood) {
+                                this.lives--;
+
+                                if (this.lives <= 0) {
+                                    saveGame(this.score, this.cutCount);
+                                    this.scene.restart();
+                                }
+                                else {
+                                    this.livesLabel.setText('♥'.repeat(this.lives));
+                                }
+                            }
+                        }
+                    }, this);
+                }
+
+            }
+
+        }
+
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'phaser-example',
+            pixelArt: true,
+            backgroundColor: '#4488aa',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 100 },
+                    debug: true
+                }
+            },
+            scene: Example
+        };
+
+        const game = new Phaser.Game(config);
+
+        function save_result() {
+
+            const str = JSON.stringify(gameResult);
+            const blob = new Blob([str], {
+                type: "application/json;charset=utf-8"
+            });
+
+            const filename = 'result.json';
+            if (window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveOrOpenBlob(blob, filename);
+            } else {
+                const a = document.createElement('a');
+                document.body.appendChild(a);
+                const url = window.URL.createObjectURL(blob);
+                a.href = url;
+                a.download = filename;
+                a.click();
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                }, 0)
+            }
+        }
+    </script>
+
+    <h1>Не режь сломанные машины</h1>
+    <button onclick="save_result()">Сохранить</button>
+    <div id="game"></div>
+
 </body>
+
 </html>
